@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gallery/studies/shrine/model/product.dart';
-import 'package:gallery/studies/shrine/model/products_repository.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 double _salesTaxRate = 0.06;
@@ -111,8 +112,27 @@ class AppStateModel extends Model {
 
   // Loads the list of available products from the repo.
   void loadProducts() {
-    _availableProducts = ProductsRepository.loadProducts(categoryAll);
-    notifyListeners();
+    FirebaseAuth.instance.authStateChanges().listen((user) async {
+      if (user != null) {
+        final productSnapshot =
+            await FirebaseFirestore.instance.collection('products').get();
+        final productDocs = productSnapshot.docs;
+        _availableProducts = productDocs.map((doc) {
+          return Product(
+            id: doc.get('id') as int,
+            category: categoryAccessories,
+            isFeatured: false,
+            name: (context) => doc.get('name') as String,
+            price: doc.get('price') as int,
+            assetAspectRatio: 329 / 246,
+          );
+        }).toList();
+      } else {
+        print('no user found so not getting products');
+        _availableProducts = [];
+      }
+      notifyListeners();
+    });
   }
 
   void setCategory(Category newCategory) {
