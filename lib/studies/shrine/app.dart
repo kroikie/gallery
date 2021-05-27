@@ -157,7 +157,7 @@ class _ShrineAppState extends State<ShrineApp>
           debugShowCheckedModeBanner: false,
           initialRoute: ShrineApp.loginRoute,
           routes: {
-            ShrineApp.loginRoute: (context) => const LoginPage(),
+            ShrineApp.loginRoute: (context) => LoginPage(),
             ShrineApp.homeRoute: (context) => home,
           },
           theme: shrineTheme.copyWith(

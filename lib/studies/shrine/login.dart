@@ -4,9 +4,9 @@
 
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/gallery_localizations.dart';
-
 import 'package:gallery/data/gallery_options.dart';
 import 'package:gallery/layout/adaptive.dart';
 import 'package:gallery/layout/image_placeholder.dart';
@@ -26,8 +26,10 @@ double desktopLoginScreenMainAreaWidth({BuildContext context}) {
 }
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({Key key}) : super(key: key);
+  LoginPage({Key key}) : super(key: key);
 
+  final usernameController = TextEditingController(text: 'me@you.com');
+  final passwordController = TextEditingController(text: 'mypassword');
   @override
   Widget build(BuildContext context) {
     final isDesktop = isDisplayDesktop(context);
@@ -42,15 +44,16 @@ class LoginPage extends StatelessWidget {
                       width: desktopLoginScreenMainAreaWidth(context: context),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          _ShrineLogo(),
-                          SizedBox(height: 40),
-                          _UsernameTextField(),
-                          SizedBox(height: 16),
-                          _PasswordTextField(),
-                          SizedBox(height: 24),
-                          _CancelAndNextButtons(),
-                          SizedBox(height: 62),
+                        children: [
+                          const _ShrineLogo(),
+                          const SizedBox(height: 40),
+                          _UsernameTextField(usernameController),
+                          const SizedBox(height: 16),
+                          _PasswordTextField(passwordController),
+                          const SizedBox(height: 24),
+                          _CancelAndNextButtons(
+                              usernameController, passwordController),
+                          const SizedBox(height: 62),
                         ],
                       ),
                     ),
@@ -59,7 +62,8 @@ class LoginPage extends StatelessWidget {
               ),
             )
           : Scaffold(
-              appBar: AppBar(backgroundColor: Colors.white),
+              appBar:
+                  AppBar(backgroundColor: Colors.white, leading: Container()),
               body: SafeArea(
                 child: ListView(
                   restorationId: 'login_list_view',
@@ -67,14 +71,15 @@ class LoginPage extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                     horizontal: _horizontalPadding,
                   ),
-                  children: const [
-                    SizedBox(height: 80),
-                    _ShrineLogo(),
-                    SizedBox(height: 120),
-                    _UsernameTextField(),
-                    SizedBox(height: 12),
-                    _PasswordTextField(),
-                    _CancelAndNextButtons(),
+                  children: [
+                    const SizedBox(height: 80),
+                    const _ShrineLogo(),
+                    const SizedBox(height: 120),
+                    _UsernameTextField(usernameController),
+                    const SizedBox(height: 12),
+                    _PasswordTextField(passwordController),
+                    _CancelAndNextButtons(
+                        usernameController, passwordController),
                   ],
                 ),
               ),
@@ -110,7 +115,9 @@ class _ShrineLogo extends StatelessWidget {
 }
 
 class _UsernameTextField extends StatelessWidget {
-  const _UsernameTextField();
+  _UsernameTextField(this._controller);
+
+  final TextEditingController _controller;
 
   @override
   Widget build(BuildContext context) {
@@ -127,13 +134,16 @@ class _UsernameTextField extends StatelessWidget {
           labelStyle: TextStyle(
               letterSpacing: letterSpacingOrNone(mediumLetterSpacing)),
         ),
+        controller: _controller,
       ),
     );
   }
 }
 
 class _PasswordTextField extends StatelessWidget {
-  const _PasswordTextField();
+  _PasswordTextField(this._controller);
+
+  final TextEditingController _controller;
 
   @override
   Widget build(BuildContext context) {
@@ -150,13 +160,17 @@ class _PasswordTextField extends StatelessWidget {
           labelStyle: TextStyle(
               letterSpacing: letterSpacingOrNone(mediumLetterSpacing)),
         ),
+        controller: _controller,
       ),
     );
   }
 }
 
 class _CancelAndNextButtons extends StatelessWidget {
-  const _CancelAndNextButtons();
+  _CancelAndNextButtons(this._usernameController, this._passwordController);
+
+  final TextEditingController _usernameController;
+  final TextEditingController _passwordController;
 
   @override
   Widget build(BuildContext context) {
@@ -201,8 +215,15 @@ class _CancelAndNextButtons extends StatelessWidget {
                   borderRadius: BorderRadius.all(Radius.circular(7)),
                 ),
               ),
-              onPressed: () {
-                Navigator.of(context).restorablePushNamed(ShrineApp.homeRoute);
+              onPressed: () async {
+                final user = await signIn(
+                    _usernameController.text, _passwordController.text);
+                if (user != null) {
+                  Navigator.of(context)
+                      .restorablePushNamed(ShrineApp.homeRoute);
+                } else {
+                  // show toast saying sign in failed
+                }
               },
               child: Padding(
                 padding: buttonTextPadding,
@@ -217,6 +238,18 @@ class _CancelAndNextButtons extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<User> signIn(String email, String password) async {
+    try {
+      final userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+      return userCredential.user;
+    } catch (err) {
+      print('failed to sign in');
+      print(err);
+      return null;
+    }
   }
 }
 

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/gallery_localizations.dart';
 import 'package:gallery/data/gallery_options.dart';
@@ -179,10 +180,11 @@ class CategoryMenuPage extends StatelessWidget {
                       button: true,
                       enabled: true,
                       child: GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           if (onCategoryTap != null) {
                             onCategoryTap();
                           }
+                          await FirebaseAuth.instance.signOut();
                           Navigator.of(context)
                               .restorablePushNamed(ShrineApp.loginRoute);
                         },
