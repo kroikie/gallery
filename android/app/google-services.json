@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "660369998872",
+    "project_id": "friendly-shrine",
+    "storage_bucket": "friendly-shrine.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:660369998872:android:0de6f3bf4114f141a6ef6d",
+        "android_client_info": {
+          "package_name": "io.flutter.demo.gallery"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "660369998872-dsnkalrq77a0mjg2vgareki5p1m8a1tm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAaFtmNJEVp7AeCrnt143RpEVFhDqy19PU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "660369998872-dsnkalrq77a0mjg2vgareki5p1m8a1tm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
