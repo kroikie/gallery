@@ -33,6 +33,22 @@
   }
   </style>
   <link rel="manifest" href="manifest.json">
+
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-firestore.js"></script>
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyB9bEyPvz_3zYhUCBFgDTWBSKcpD22psKA",
+      authDomain: "friendly-shrine.firebaseapp.com",
+      projectId: "friendly-shrine",
+      storageBucket: "friendly-shrine.appspot.com",
+      messagingSenderId: "660369998872",
+      appId: "1:660369998872:web:0e61558eedbd84b9a6ef6d",
+      measurementId: "G-1P2YEEYMR0"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </head>
 <body>
   <!-- This script installs service_worker.js to provide PWA functionality to
