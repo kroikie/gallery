@@ -16,6 +16,8 @@ import 'package:gallery/studies/shrine/app.dart';
 import 'package:gallery/studies/shrine/colors.dart';
 import 'package:gallery/studies/shrine/theme.dart';
 
+import 'model/app_state_model.dart';
+
 const _horizontalPadding = 24.0;
 
 double desktopLoginScreenMainAreaWidth({BuildContext context}) {
@@ -219,6 +221,7 @@ class _CancelAndNextButtons extends StatelessWidget {
                 final user = await signIn(
                     _usernameController.text, _passwordController.text);
                 if (user != null) {
+                  await AppStateModel.backfillProducts(context);
                   Navigator.of(context)
                       .restorablePushNamed(ShrineApp.homeRoute);
                 } else {
@@ -241,9 +244,11 @@ class _CancelAndNextButtons extends StatelessWidget {
   }
 
   Future<User> signIn(String email, String password) async {
+    print('signIn: ' + email);
     try {
       final userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
+      print('signed in as: ' + userCredential.user.email);
       return userCredential.user;
     } catch (err) {
       print('failed to sign in');
