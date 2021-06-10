@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,8 +25,13 @@ void main() {
   runApp(const GalleryApp());
 }
 
+// Change this to toggle emulators on/off
+bool useFirebaseEmulators = true;
+bool firebaseEmulatorsConfigured = false;
+
 class GalleryApp extends StatefulWidget {
-  const GalleryApp({Key key, this.initialRoute, this.isTestMode = false}) : super(key: key);
+  const GalleryApp({Key key, this.initialRoute, this.isTestMode = false})
+      : super(key: key);
 
   final bool isTestMode;
   final String initialRoute;
@@ -34,12 +41,11 @@ class GalleryApp extends StatefulWidget {
 }
 
 class _GalleryAppState extends State<GalleryApp> {
-
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
+    return FutureBuilder<FirebaseApp>(
       // Initialize FlutterFire:
       future: _initialization,
       builder: (context, snapshot) {
@@ -47,6 +53,23 @@ class _GalleryAppState extends State<GalleryApp> {
         if (snapshot.hasError) {
           print('something went wrong');
           return Container();
+        }
+
+        if (useFirebaseEmulators && !firebaseEmulatorsConfigured) {
+          // Configure the app to use Firebase emulators
+          final host = defaultTargetPlatform == TargetPlatform.android
+              ? '10.0.2.2'
+              : 'localhost';
+
+          // Configure Firestore emulator
+          FirebaseFirestore.instance.settings = Settings(
+              host: '$host:8080', sslEnabled: false, persistenceEnabled: false);
+
+          // Configure Firebase Auth emulator
+          FirebaseAuth.instance.useEmulator('http://$host:9099');
+
+          // Run this code only once
+          firebaseEmulatorsConfigured = true;
         }
 
         // Once complete, show your application
@@ -94,7 +117,13 @@ class _GalleryAppState extends State<GalleryApp> {
 
         // Otherwise, show something whilst waiting for initialization to complete
         print('loading...');
-        return Container(child: const Center(child: Text('loading...', textDirection: TextDirection.ltr,)),);
+        return Container(
+          child: const Center(
+              child: Text(
+            'loading...',
+            textDirection: TextDirection.ltr,
+          )),
+        );
       },
     );
   }

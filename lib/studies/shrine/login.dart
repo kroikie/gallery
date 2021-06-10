@@ -231,7 +231,34 @@ class _CancelAndNextButtons extends StatelessWidget {
               child: Padding(
                 padding: buttonTextPadding,
                 child: Text(
-                  GalleryLocalizations.of(context).shrineNextButtonCaption,
+                  'LOG IN',
+                  style: TextStyle(
+                      letterSpacing: letterSpacingOrNone(largeLetterSpacing)),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                elevation: 8,
+                shape: const BeveledRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(7)),
+                ),
+              ),
+              onPressed: () async {
+                final user = await signUp(
+                    _usernameController.text, _passwordController.text);
+                if (user != null) {
+                  await AppStateModel.backfillProducts(context);
+                  Navigator.of(context)
+                      .restorablePushNamed(ShrineApp.homeRoute);
+                } else {
+                  // show toast saying sign in failed
+                }
+              },
+              child: Padding(
+                padding: buttonTextPadding,
+                child: Text(
+                  'SIGN UP',
                   style: TextStyle(
                       letterSpacing: letterSpacingOrNone(largeLetterSpacing)),
                 ),
@@ -244,15 +271,21 @@ class _CancelAndNextButtons extends StatelessWidget {
   }
 
   Future<User> signIn(String email, String password) async {
-    print('signIn: ' + email);
     try {
       final userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
-      print('signed in as: ' + userCredential.user.email);
       return userCredential.user;
     } catch (err) {
-      print('failed to sign in');
-      print(err);
+      return null;
+    }
+  }
+
+  Future<User> signUp(String email, String password) async {
+    try {
+      final userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+      return userCredential.user;
+    } catch (err) {
       return null;
     }
   }
