@@ -61,6 +61,8 @@ class _GalleryAppState extends State<GalleryApp> {
 
       completer.complete(value);
     });
+
+    return completer;
   }
 
   @override
