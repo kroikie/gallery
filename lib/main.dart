@@ -75,23 +75,6 @@ class _GalleryAppState extends State<GalleryApp> {
           return Container();
         }
 
-        if (useFirebaseEmulators && !firebaseEmulatorsConfigured) {
-          // Configure the app to use Firebase emulators
-          final host = defaultTargetPlatform == TargetPlatform.android
-              ? '10.0.2.2'
-              : 'localhost';
-
-          // Configure Firestore emulator
-          FirebaseFirestore.instance.settings = Settings(
-              host: '$host:8080', sslEnabled: false, persistenceEnabled: false);
-
-          // Configure Firebase Auth emulator
-          FirebaseAuth.instance.useEmulator('http://$host:9099');
-
-          // Run this code only once
-          firebaseEmulatorsConfigured = true;
-        }
-
         // Once complete, show your application
         if (snapshot.connectionState == ConnectionState.done) {
           return ModelBinding(
