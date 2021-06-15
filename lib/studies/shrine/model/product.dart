@@ -24,6 +24,22 @@ class Category {
     }
   }
 
+  static String toName(Category category) {
+    if (category == categoryAccessories) {
+      return 'ACCESSORIES';
+    }
+
+    if (category == categoryClothing) {
+      return 'CLOTHING';
+    }
+
+    if (category == categoryHome) {
+      return 'HOME';
+    }
+
+    return 'ALL';
+  }
+
   // A function taking a BuildContext as input and
   // returns the internationalized name of the category.
   final String Function(BuildContext) name;
