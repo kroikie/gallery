@@ -29,6 +29,7 @@ void main() {
 
 // Change this to toggle emulators on/off
 bool useFirebaseEmulators = true;
+bool firebaseEmulatorsConfigured = false;
 
 class GalleryApp extends StatefulWidget {
   const GalleryApp({Key key, this.initialRoute, this.isTestMode = false})
@@ -45,7 +46,7 @@ class _GalleryAppState extends State<GalleryApp> {
   Completer<FirebaseApp> initializeFirebase() {
     final completer = Completer<FirebaseApp>();
     Firebase.initializeApp().then((value) {
-      if (useFirebaseEmulators) {
+      if (useFirebaseEmulators && !firebaseEmulatorsConfigured) {
         // Configure the app to use Firebase emulators
         final host = defaultTargetPlatform == TargetPlatform.android
             ? '10.0.2.2'
@@ -59,6 +60,7 @@ class _GalleryAppState extends State<GalleryApp> {
         FirebaseAuth.instance.useEmulator('http://$host:9099');
       }
 
+      firebaseEmulatorsConfigured = true;
       completer.complete(value);
     });
 
