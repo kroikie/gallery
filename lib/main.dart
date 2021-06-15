@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -27,7 +29,6 @@ void main() {
 
 // Change this to toggle emulators on/off
 bool useFirebaseEmulators = true;
-bool firebaseEmulatorsConfigured = false;
 
 class GalleryApp extends StatefulWidget {
   const GalleryApp({Key key, this.initialRoute, this.isTestMode = false})
@@ -41,13 +42,32 @@ class GalleryApp extends StatefulWidget {
 }
 
 class _GalleryAppState extends State<GalleryApp> {
-  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+  Completer<FirebaseApp> initializeFirebase() {
+    final completer = Completer<FirebaseApp>();
+    Firebase.initializeApp().then((value) {
+      if (useFirebaseEmulators) {
+        // Configure the app to use Firebase emulators
+        final host = defaultTargetPlatform == TargetPlatform.android
+            ? '10.0.2.2'
+            : 'localhost';
+
+        // Configure Firestore emulator
+        FirebaseFirestore.instance.settings = Settings(
+            host: '$host:8080', sslEnabled: false, persistenceEnabled: false);
+
+        // Configure Firebase Auth emulator
+        FirebaseAuth.instance.useEmulator('http://$host:9099');
+      }
+
+      completer.complete(value);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<FirebaseApp>(
       // Initialize FlutterFire:
-      future: _initialization,
+      future: initializeFirebase().future,
       builder: (context, snapshot) {
         // Check for errors
         if (snapshot.hasError) {
