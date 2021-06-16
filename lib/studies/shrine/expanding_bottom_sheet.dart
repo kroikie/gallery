@@ -405,7 +405,7 @@ class _ExpandingBottomSheetState extends State<ExpandingBottomSheet> {
             width: _width,
             height: min(numProducts, _maxThumbnailCount) *
                 _paddedThumbnailHeight(context),
-            child: const ProductThumbnailRow(),
+            child: ProductThumbnailRow(), // ignore: prefer_const_constructors
           ),
           const ExtraProductsNumber(),
         ],
@@ -427,7 +427,8 @@ class _ExpandingBottomSheetState extends State<ExpandingBottomSheet> {
                     (numProducts > 0 ? _thumbnailGap : 0),
                 height: _height - _bottomSafeArea,
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                child: const ProductThumbnailRow(),
+                child:
+                    ProductThumbnailRow(), // ignore: prefer_const_constructors
               ),
               const ExtraProductsNumber(),
             ],

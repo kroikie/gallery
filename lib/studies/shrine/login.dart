@@ -33,7 +33,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final usernameController = TextEditingController(text: 'me@you.coms');
+  final usernameController = TextEditingController(text: 'me@you.com');
   final passwordController = TextEditingController(text: 'mypassword');
 
   @override
