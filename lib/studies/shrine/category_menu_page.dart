@@ -195,6 +195,27 @@ class CategoryMenuPage extends StatelessWidget {
                         ),
                       ),
                     ),
+                    Center(
+                      child: _divider(context: context),
+                    ),
+                    Semantics(
+                      button: true,
+                      enabled: true,
+                      child: GestureDetector(
+                        onTap: () async {
+                          await AppStateModel.backfillProducts(context);
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
+                            content: Text('Product data seeded!'),
+                            duration: Duration(seconds: 2),
+                          ));
+                        },
+                        child: _buttonText(
+                          'SEED',
+                          logoutTextStyle,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

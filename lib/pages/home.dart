@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_gen/gen_l10n/gallery_localizations.dart';
@@ -1165,8 +1164,7 @@ class _StudyWrapperState extends State<StudyWrapper> {
                   child: FloatingActionButton.extended(
                     heroTag: _BackButtonHeroTag(),
                     key: const ValueKey('Back'),
-                    onPressed: () async {
-                      await FirebaseAuth.instance.signOut();
+                    onPressed: () {
                       Navigator.of(context)
                           .popUntil((route) => route.settings.name == '/');
                     },

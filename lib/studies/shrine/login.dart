@@ -16,8 +16,6 @@ import 'package:gallery/studies/shrine/app.dart';
 import 'package:gallery/studies/shrine/colors.dart';
 import 'package:gallery/studies/shrine/theme.dart';
 
-import 'model/app_state_model.dart';
-
 const _horizontalPadding = 24.0;
 
 double desktopLoginScreenMainAreaWidth({BuildContext context}) {
@@ -27,13 +25,20 @@ double desktopLoginScreenMainAreaWidth({BuildContext context}) {
   );
 }
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   LoginPage({Key key}) : super(key: key);
 
-  final usernameController = TextEditingController(text: 'me@you.com');
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final usernameController = TextEditingController(text: 'me@you.coms');
   final passwordController = TextEditingController(text: 'mypassword');
+
   @override
   Widget build(BuildContext context) {
+    print('building login page');
     final isDesktop = isDisplayDesktop(context);
 
     return ApplyTextOptions(
@@ -195,7 +200,8 @@ class _CancelAndNextButtons extends StatelessWidget {
                   borderRadius: BorderRadius.all(Radius.circular(7)),
                 ),
               ),
-              onPressed: () {
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
                 // The login screen is immediately displayed on top of
                 // the Shrine home screen using onGenerateRoute and so
                 // rootNavigator must be set to true in order to get out
@@ -221,11 +227,14 @@ class _CancelAndNextButtons extends StatelessWidget {
                 final user = await signIn(
                     _usernameController.text, _passwordController.text);
                 if (user != null) {
-                  await AppStateModel.backfillProducts(context);
                   Navigator.of(context)
                       .restorablePushNamed(ShrineApp.homeRoute);
                 } else {
                   // show toast saying sign in failed
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Signing in failed'),
+                    duration: Duration(seconds: 2),
+                  ));
                 }
               },
               child: Padding(
@@ -248,11 +257,14 @@ class _CancelAndNextButtons extends StatelessWidget {
                 final user = await signUp(
                     _usernameController.text, _passwordController.text);
                 if (user != null) {
-                  await AppStateModel.backfillProducts(context);
                   Navigator.of(context)
                       .restorablePushNamed(ShrineApp.homeRoute);
                 } else {
                   // show toast saying sign in failed
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Signing up failed'),
+                    duration: Duration(seconds: 2),
+                  ));
                 }
               },
               child: Padding(

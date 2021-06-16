@@ -58,10 +58,8 @@ class RouteConfiguration {
     ),
     Path(
       r'^' + shrine_routes.homeRoute,
-      (context, match) => StudyWrapper(
-        study: DeferredWidget(shrine.loadLibrary,
-            () => shrine.ShrineApp()), // ignore: prefer_const_constructors
-      ),
+      (context, match) => DeferredWidget(shrine.loadLibrary,
+          () => shrine.ShrineApp()), // ignore: prefer_const_constructors
     ),
     Path(
       r'^' + crane_routes.defaultRoute,
