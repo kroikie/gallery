@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:js';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -54,13 +56,7 @@ class AppStateModel extends Model {
       return [];
     }
 
-    if (_selectedCategory == categoryAll) {
-      return List<Product>.from(_availableProducts);
-    } else {
-      return _availableProducts
-          .where((p) => p.category == _selectedCategory)
-          .toList();
-    }
+    return _availableProducts;
   }
 
   // Adds a product to the cart.
@@ -125,12 +121,7 @@ class AppStateModel extends Model {
   void loadProducts() {
     FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user != null) {
-        final productSnapshot =
-            await FirebaseFirestore.instance.collection('products').get();
-        final productDocs = productSnapshot.docs;
-        _availableProducts = productDocs.map((doc) {
-          return Product.fromMap(doc.data());
-        }).toList();
+        _availableProducts = await queryForProducts();
       } else {
         print('no user found so not getting products');
         _availableProducts = [];
@@ -139,9 +130,31 @@ class AppStateModel extends Model {
     });
   }
 
+  Future<List<Product>> queryForProducts() async {
+    // Query based on the selected category
+    Query<Map<String, dynamic>> query =
+        FirebaseFirestore.instance.collection('products');
+    if (_selectedCategory != categoryAll) {
+      query = query.where('category',
+          isEqualTo: Category.toName(_selectedCategory));
+    }
+
+    // Fetch the snapshot from Firestore
+    final productSnapshot = await query.get();
+
+    // Map products from Firestore docs to objects
+    final productDocs = productSnapshot.docs;
+    return productDocs.map((doc) {
+      return Product.fromMap(doc.data());
+    }).toList();
+  }
+
   void setCategory(Category newCategory) {
     _selectedCategory = newCategory;
-    notifyListeners();
+    queryForProducts().then((value) {
+      _availableProducts = value;
+      notifyListeners();
+    });
   }
 
   @override
