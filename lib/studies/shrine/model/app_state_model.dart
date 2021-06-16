@@ -58,24 +58,34 @@ class AppStateModel extends Model {
   }
 
   // Adds a product to the cart.
-  void addProductToCart(int productId) {
-    if (!_productsInCart.containsKey(productId)) {
-      _productsInCart[productId] = 1;
-    } else {
-      _productsInCart[productId]++;
-    }
+  void addProductToCart(int productId, Map<String, dynamic> productData) {
+    addMultipleProductsToCart(productId, productData, 1);
+  }
 
-    notifyListeners();
+  DocumentReference getCartItemRef(int productId) {
+    final uid = FirebaseAuth.instance.currentUser.uid;
+    final cartRef = FirebaseFirestore.instance.collection('carts').doc(uid);
+    return cartRef.collection('items').doc('$productId');
   }
 
   // Adds products to the cart by a certain amount.
   // quantity must be non-null positive value.
-  void addMultipleProductsToCart(int productId, int quantity) {
+  void addMultipleProductsToCart(
+      int productId, Map<String, dynamic> productData, int quantity) {
     assert(quantity > 0);
     assert(quantity != null);
+
+    // /carts/$uid/items/$productId
+    final itemRef = getCartItemRef(productId);
+
     if (!_productsInCart.containsKey(productId)) {
+      itemRef.set(<String, dynamic>{'product': productData, 'quantity': 1});
+
       _productsInCart[productId] = quantity;
     } else {
+      itemRef.update(
+          <String, dynamic>{'quantity': FieldValue.increment(quantity)});
+
       _productsInCart[productId] += quantity;
     }
 
@@ -84,13 +94,10 @@ class AppStateModel extends Model {
 
   // Removes an item from the cart.
   void removeItemFromCart(int productId) {
-    if (_productsInCart.containsKey(productId)) {
-      if (_productsInCart[productId] == 1) {
-        _productsInCart.remove(productId);
-      } else {
-        _productsInCart[productId]--;
-      }
-    }
+    final itemRef = getCartItemRef(productId);
+
+    productsInCart.remove(productId);
+    itemRef.delete();
 
     notifyListeners();
   }
@@ -126,6 +133,29 @@ class AppStateModel extends Model {
       }
       notifyListeners();
     });
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> cartStream() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return const Stream<DocumentSnapshot<Map<String, dynamic>>>.empty();
+    }
+
+    // Listen for cart and cart items
+    final uid = user.uid;
+    return FirebaseFirestore.instance.collection('carts').doc(uid).snapshots();
+  }
+
+  Stream<QuerySnapshot> cartItemsStream() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return const Stream<QuerySnapshot>.empty();
+    }
+
+    // Listen for cart and cart items
+    final uid = user.uid;
+    final cartRef = FirebaseFirestore.instance.collection('carts').doc(uid);
+    return cartRef.collection('items').snapshots();
   }
 
   Future<List<Product>> queryForProducts() async {

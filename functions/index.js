@@ -30,12 +30,13 @@ exports.onCartItem = functions.firestore.document('/carts/{userId}/items/{itemId
 
   // Calculate the cart subtotal
   const subtotal = cartItems.reduce((acc, doc) => {
-    return acc + doc.price;
+    return acc + (doc.product.price * doc.quantity);
   }, 0);
 
   // Update the shipping/tax info in the cart
-  await cartRef.update({
+  await cartRef.set({
+    subtotal: subtotal,
     shipping: calculateShipping(subtotal, itemsCount),
     tax: calculateTax(subtotal)
-  });
+  }, { merge: true });
 });

@@ -484,6 +484,7 @@ class _ExpandingBottomSheetState extends State<ExpandingBottomSheet> {
         ? _getDesktopGapAnimation(116)
         : const AlwaysStoppedAnimation(0);
 
+    // TODO: This should also come from Firestore!
     final Widget child = SizedBox(
       width: _widthAnimation.value,
       height: _heightAnimation.value,

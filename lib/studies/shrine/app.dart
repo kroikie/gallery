@@ -186,12 +186,6 @@ class _RestorableAppStateModel extends RestorableListenable<AppStateModel> {
     final categoryIndex = appData['category_index'] as int;
     appState.setCategory(categories[categoryIndex]);
 
-    // Reset cart items.
-    final cartItems = appData['cart_data'] as Map<dynamic, dynamic>;
-    cartItems.forEach((dynamic id, dynamic quantity) {
-      appState.addMultipleProductsToCart(id as int, quantity as int);
-    });
-
     return appState;
   }
 
