@@ -161,80 +161,90 @@ class ShoppingCartSummary extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: const EdgeInsetsDirectional.only(end: 16),
-            child: Column(
-              children: [
-                MergeSemantics(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        GalleryLocalizations.of(context).shrineCartTotalCaption,
-                      ),
-                      Expanded(
-                        child: Text(
-                          formatter.format(model.totalCost),
-                          style: largeAmountStyle,
-                          textAlign: TextAlign.end,
+            child: StreamBuilder<CloudCartDetails>(
+                stream: model.cartStream,
+                builder: (context, cartSnapshot) {
+                  if (cartSnapshot.hasData) {
+                    return Column(
+                      children: [
+                        MergeSemantics(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                GalleryLocalizations.of(context)
+                                    .shrineCartTotalCaption,
+                              ),
+                              Expanded(
+                                child: Text(
+                                  formatter.format(cartSnapshot.data.total),
+                                  style: largeAmountStyle,
+                                  textAlign: TextAlign.end,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                MergeSemantics(
-                  child: Row(
-                    children: [
-                      Text(
-                        GalleryLocalizations.of(context)
-                            .shrineCartSubtotalCaption,
-                      ),
-                      Expanded(
-                        child: Text(
-                          formatter.format(model.subtotalCost),
-                          style: smallAmountStyle,
-                          textAlign: TextAlign.end,
+                        const SizedBox(height: 16),
+                        MergeSemantics(
+                          child: Row(
+                            children: [
+                              Text(
+                                GalleryLocalizations.of(context)
+                                    .shrineCartSubtotalCaption,
+                              ),
+                              Expanded(
+                                child: Text(
+                                  formatter.format(model.subtotalCost),
+                                  style: smallAmountStyle,
+                                  textAlign: TextAlign.end,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                MergeSemantics(
-                  child: Row(
-                    children: [
-                      Text(
-                        GalleryLocalizations.of(context)
-                            .shrineCartShippingCaption,
-                      ),
-                      Expanded(
-                        child: Text(
-                          formatter.format(model.shippingCost),
-                          style: smallAmountStyle,
-                          textAlign: TextAlign.end,
+                        const SizedBox(height: 4),
+                        MergeSemantics(
+                          child: Row(
+                            children: [
+                              Text(
+                                GalleryLocalizations.of(context)
+                                    .shrineCartShippingCaption,
+                              ),
+                              Expanded(
+                                child: Text(
+                                  formatter.format(cartSnapshot.data.shipping),
+                                  style: smallAmountStyle,
+                                  textAlign: TextAlign.end,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                MergeSemantics(
-                  child: Row(
-                    children: [
-                      Text(
-                        GalleryLocalizations.of(context).shrineCartTaxCaption,
-                      ),
-                      Expanded(
-                        child: Text(
-                          formatter.format(model.tax),
-                          style: smallAmountStyle,
-                          textAlign: TextAlign.end,
+                        const SizedBox(height: 4),
+                        MergeSemantics(
+                          child: Row(
+                            children: [
+                              Text(
+                                GalleryLocalizations.of(context)
+                                    .shrineCartTaxCaption,
+                              ),
+                              Expanded(
+                                child: Text(
+                                  formatter.format(cartSnapshot.data.tax),
+                                  style: smallAmountStyle,
+                                  textAlign: TextAlign.end,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                      ],
+                    );
+                  } else {
+                    return Container();
+                  }
+                }),
           ),
         ),
       ],

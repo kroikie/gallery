@@ -36,17 +36,19 @@ class AppStateModel extends Model {
         .fold(0.0, (sum, e) => sum + e);
   }
 
-  // Total shipping cost for the items in the cart.
-  double get shippingCost {
-    return _shippingCostPerItem *
-        _productsInCart.values.fold(0.0, (sum, e) => sum + e);
+  Stream<CloudCartDetails> get cartStream {
+    final user = FirebaseAuth.instance.currentUser;
+    return FirebaseFirestore.instance
+        .doc('carts/${user.uid}')
+        .snapshots()
+        .map((snapshot) {
+      var tax = (snapshot.get('tax') + 0.0) as double;
+      final shipping = (snapshot.get('shipping') + 0.0) as double;
+      final total = subtotalCost + tax + shipping;
+
+      return CloudCartDetails(tax, shipping, total);
+    });
   }
-
-  // Sales tax for the items in the cart
-  double get tax => subtotalCost * _salesTaxRate;
-
-  // Total cost to order everything in the cart.
-  double get totalCost => subtotalCost + shippingCost + tax;
 
   // Returns a copy of the list of available products, filtered by category.
   List<Product> getProducts() {
@@ -58,7 +60,14 @@ class AppStateModel extends Model {
   }
 
   // Adds a product to the cart.
-  void addProductToCart(int productId) {
+  Future<void> addProductToCart(int productId) async {
+    final product = getProductById(productId);
+    final user = await FirebaseAuth.instance.authStateChanges().first;
+    final userCartRef =
+        FirebaseFirestore.instance.collection('carts/${user.uid}/items');
+    await userCartRef
+        .doc('$productId')
+        .set(<String, int>{'price': product.price});
     if (!_productsInCart.containsKey(productId)) {
       _productsInCart[productId] = 1;
     } else {
@@ -83,7 +92,13 @@ class AppStateModel extends Model {
   }
 
   // Removes an item from the cart.
-  void removeItemFromCart(int productId) {
+  Future<void> removeItemFromCart(int productId) async {
+    final product = getProductById(productId);
+    final user = await FirebaseAuth.instance.authStateChanges().first;
+    final itemRef = FirebaseFirestore.instance.doc(
+      'carts/${user.uid}/items/$productId',
+    );
+    await itemRef.delete();
     if (_productsInCart.containsKey(productId)) {
       if (_productsInCart[productId] == 1) {
         _productsInCart.remove(productId);
@@ -101,7 +116,15 @@ class AppStateModel extends Model {
   }
 
   // Removes everything from the cart.
-  void clearCart() {
+  Future<void> clearCart() async {
+    final user = await FirebaseAuth.instance.authStateChanges().first;
+    final userCartQuerySnapshot = await FirebaseFirestore.instance
+        .collection('carts/${user.uid}/items')
+        .get();
+    final userCartDocs = userCartQuerySnapshot.docs;
+    for (var userCartDoc in userCartDocs) {
+      await userCartDoc.reference.delete();
+    }
     _productsInCart.clear();
     notifyListeners();
   }
@@ -157,6 +180,14 @@ class AppStateModel extends Model {
 
   @override
   String toString() {
-    return 'AppStateModel(totalCost: $totalCost)';
+    return 'AppStateModel(totalCost)';
   }
+}
+
+class CloudCartDetails {
+  double tax;
+  double shipping;
+  double total;
+
+  CloudCartDetails(this.tax, this.shipping, this.total);
 }

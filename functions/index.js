@@ -34,8 +34,8 @@ exports.onCartItem = functions.firestore.document('/carts/{userId}/items/{itemId
   }, 0);
 
   // Update the shipping/tax info in the cart
-  await cartRef.update({
+  await cartRef.set({
     shipping: calculateShipping(subtotal, itemsCount),
     tax: calculateTax(subtotal)
-  });
+  }, {merge: true});
 });
