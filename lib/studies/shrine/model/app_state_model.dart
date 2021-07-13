@@ -96,7 +96,7 @@ class AppStateModel extends Model {
   void removeItemFromCart(int productId) {
     final itemRef = getCartItemRef(productId);
 
-    productsInCart.remove(productId);
+    _productsInCart.remove(productId);
     itemRef.delete();
 
     notifyListeners();
@@ -132,6 +132,12 @@ class AppStateModel extends Model {
     FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user != null) {
         _availableProducts = await queryForProducts();
+
+        final itemsSnapshot = await cartItemsStream().first;
+        for (final item in itemsSnapshot.docs) {
+          _productsInCart[item['product']['id'] as int] =
+              item['quantity'] as int;
+        }
       } else {
         print('no user found so not getting products');
         _availableProducts = [];
