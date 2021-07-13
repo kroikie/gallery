@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_gen/gen_l10n/gallery_localizations.dart';
@@ -25,18 +26,41 @@ class ShoppingCartPage extends StatefulWidget {
 }
 
 class _ShoppingCartPageState extends State<ShoppingCartPage> {
-  List<Widget> _createShoppingCartRows(AppStateModel model) {
-    return model.productsInCart.keys
-        .map(
-          (id) => ShoppingCartRow(
-            product: model.getProductById(id),
-            quantity: model.productsInCart[id],
-            onPressed: () {
-              model.removeItemFromCart(id);
-            },
-          ),
-        )
-        .toList();
+  ShoppingCartRow _cartRow(AppStateModel model, Product product, int quantity) {
+    return ShoppingCartRow(
+      product: product,
+      quantity: quantity,
+      onPressed: () {
+        model.removeItemFromCart(product.id);
+      },
+    );
+  }
+
+  StreamBuilder<QuerySnapshot<Object>> _shoppingCartColumn(
+      AppStateModel model) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: model.cartItemsStream(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Text('Something went wrong');
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Text('Loading');
+        }
+
+        return Column(
+          children: snapshot.data.docs.map((document) {
+            final data = document.data() as Map<String, dynamic>;
+            final quantity = data['quantity'] as int;
+            final productData = data['product'] as Map<String, dynamic>;
+            final product = Product.fromMap(productData);
+
+            return _cartRow(model, product, quantity);
+          }).toList(),
+        );
+      },
+    );
   }
 
   @override
@@ -86,9 +110,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                     Semantics(
                       sortKey:
                           const OrdinalSortKey(1, name: _ordinalSortKeyName),
-                      child: Column(
-                        children: _createShoppingCartRows(model),
-                      ),
+                      child: _shoppingCartColumn(model),
                     ),
                     Semantics(
                       sortKey:
@@ -137,6 +159,105 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
   }
 }
 
+Widget _shoppingCartSummaryInternals(BuildContext context, double totalCost,
+    double subtotalCost, double shippingCost, double tax) {
+  final smallAmountStyle =
+      Theme.of(context).textTheme.bodyText2.copyWith(color: shrineBrown600);
+  final largeAmountStyle = Theme.of(context)
+      .textTheme
+      .headline4
+      .copyWith(letterSpacing: letterSpacingOrNone(mediumLetterSpacing));
+  final formatter = NumberFormat.simpleCurrency(
+    decimalDigits: 2,
+    locale: Localizations.localeOf(context).toString(),
+  );
+
+  return Row(
+    children: [
+      const SizedBox(width: _startColumnWidth),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(end: 16),
+          child: Column(
+            children: [
+              MergeSemantics(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      GalleryLocalizations.of(context).shrineCartTotalCaption,
+                    ),
+                    Expanded(
+                      child: Text(
+                        formatter.format(totalCost),
+                        style: largeAmountStyle,
+                        textAlign: TextAlign.end,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              MergeSemantics(
+                child: Row(
+                  children: [
+                    Text(
+                      GalleryLocalizations.of(context)
+                          .shrineCartSubtotalCaption,
+                    ),
+                    Expanded(
+                      child: Text(
+                        formatter.format(subtotalCost),
+                        style: smallAmountStyle,
+                        textAlign: TextAlign.end,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
+              MergeSemantics(
+                child: Row(
+                  children: [
+                    Text(
+                      GalleryLocalizations.of(context)
+                          .shrineCartShippingCaption,
+                    ),
+                    Expanded(
+                      child: Text(
+                        formatter.format(shippingCost),
+                        style: smallAmountStyle,
+                        textAlign: TextAlign.end,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
+              MergeSemantics(
+                child: Row(
+                  children: [
+                    Text(
+                      GalleryLocalizations.of(context).shrineCartTaxCaption,
+                    ),
+                    Expanded(
+                      child: Text(
+                        formatter.format(tax),
+                        style: smallAmountStyle,
+                        textAlign: TextAlign.end,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
 class ShoppingCartSummary extends StatelessWidget {
   const ShoppingCartSummary({Key key, this.model}) : super(key: key);
 
@@ -144,100 +265,26 @@ class ShoppingCartSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final smallAmountStyle =
-        Theme.of(context).textTheme.bodyText2.copyWith(color: shrineBrown600);
-    final largeAmountStyle = Theme.of(context)
-        .textTheme
-        .headline4
-        .copyWith(letterSpacing: letterSpacingOrNone(mediumLetterSpacing));
-    final formatter = NumberFormat.simpleCurrency(
-      decimalDigits: 2,
-      locale: Localizations.localeOf(context).toString(),
-    );
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: model.cartStream(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Text('Something went wrong');
+        }
 
-    return Row(
-      children: [
-        const SizedBox(width: _startColumnWidth),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsetsDirectional.only(end: 16),
-            child: Column(
-              children: [
-                MergeSemantics(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        GalleryLocalizations.of(context).shrineCartTotalCaption,
-                      ),
-                      Expanded(
-                        child: Text(
-                          formatter.format(model.totalCost),
-                          style: largeAmountStyle,
-                          textAlign: TextAlign.end,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                MergeSemantics(
-                  child: Row(
-                    children: [
-                      Text(
-                        GalleryLocalizations.of(context)
-                            .shrineCartSubtotalCaption,
-                      ),
-                      Expanded(
-                        child: Text(
-                          formatter.format(model.subtotalCost),
-                          style: smallAmountStyle,
-                          textAlign: TextAlign.end,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                MergeSemantics(
-                  child: Row(
-                    children: [
-                      Text(
-                        GalleryLocalizations.of(context)
-                            .shrineCartShippingCaption,
-                      ),
-                      Expanded(
-                        child: Text(
-                          formatter.format(model.shippingCost),
-                          style: smallAmountStyle,
-                          textAlign: TextAlign.end,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                MergeSemantics(
-                  child: Row(
-                    children: [
-                      Text(
-                        GalleryLocalizations.of(context).shrineCartTaxCaption,
-                      ),
-                      Expanded(
-                        child: Text(
-                          formatter.format(model.tax),
-                          style: smallAmountStyle,
-                          textAlign: TextAlign.end,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Text('Loading');
+        }
+
+        final data = snapshot.data;
+        final subtotal = data['subtotal'] as double;
+        final shipping = data['shipping'] as double;
+        final tax = data['tax'] as double;
+        final total = subtotal + shipping + tax;
+
+        return _shoppingCartSummaryInternals(
+            context, total, subtotal, shipping, tax);
+      },
     );
   }
 }

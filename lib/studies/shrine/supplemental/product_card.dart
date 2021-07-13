@@ -89,7 +89,8 @@ Widget _buildProductCard({
             GalleryLocalizations.of(context).shrineScreenReaderProductAddToCart,
         child: GestureDetector(
           onTap: () {
-            model.addProductToCart(product.id);
+            final productData = product.toMap(context);
+            model.addProductToCart(product.id, productData);
           },
           child: child,
         ),

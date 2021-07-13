@@ -111,7 +111,7 @@ class Product {
 
   Map<String, dynamic> toMap(BuildContext context) {
     return <String, dynamic>{
-      'category': category.name(context).toString(),
+      'category': Category.toName(category),
       'id': id,
       'isFeatured': isFeatured,
       'name': name(context),
