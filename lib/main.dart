@@ -53,11 +53,13 @@ class _GalleryAppState extends State<GalleryApp> {
             : 'localhost';
 
         // Configure Firestore emulator
-        FirebaseFirestore.instance.settings = Settings(
-            host: '$host:8080', sslEnabled: false, persistenceEnabled: false);
+        FirebaseFirestore.instance.settings =
+            const Settings(persistenceEnabled: false);
+
+        FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
 
         // Configure Firebase Auth emulator
-        FirebaseAuth.instance.useEmulator('http://$host:9099');
+        FirebaseAuth.instance.useAuthEmulator(host, 9099);
       }
 
       firebaseEmulatorsConfigured = true;

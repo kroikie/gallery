@@ -277,9 +277,14 @@ class ShoppingCartSummary extends StatelessWidget {
         }
 
         final data = snapshot.data;
-        final subtotal = data['subtotal'] as double;
-        final shipping = data['shipping'] as double;
-        final tax = data['tax'] as double;
+        var subtotal = 0.0;
+        var shipping = 0.0;
+        var tax = 0.0;
+        if (data.exists) {
+          subtotal = data['subtotal'] + 0.0 as double;
+          shipping = data['shipping'] + 0.0 as double;
+          tax = data['tax'] + 0.0 as double;
+        }
         final total = subtotal + shipping + tax;
 
         return _shoppingCartSummaryInternals(

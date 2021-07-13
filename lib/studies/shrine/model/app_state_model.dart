@@ -109,7 +109,12 @@ class AppStateModel extends Model {
 
   // Removes everything from the cart.
   void clearCart() {
-    _productsInCart.clear();
+    final productIdsInCart = List<int>.from(_productsInCart.keys);
+    for (final productId in productIdsInCart) {
+      final itemRef = getCartItemRef(productId);
+      _productsInCart.remove(productId);
+      itemRef.delete();
+    }
     notifyListeners();
   }
 
